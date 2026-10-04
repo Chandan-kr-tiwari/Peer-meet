@@ -6,13 +6,29 @@ import socket from "../socket";
 function Meeting() {
   const { roomId } = useParams();
 
-  useEffect(() => {
-    socket.connect();
+ useEffect(() => {
+  if (!roomId) {
+    return;
+  }
+
+  socket.connect();
+
+ const handleConnect = () => {
+      console.log("Connected:", socket.id);
+      socket.emit("join-room", roomId);
+    };
+      const handleUserJoined = (data: { socketId: string }) => {
+      console.log("New user joined:", data.socketId);
+    };
+    socket.on("connect", handleConnect);
+    socket.on("user-joined", handleUserJoined);
 
     return () => {
+      socket.off("connect", handleConnect);
+      socket.off("user-joined", handleUserJoined);
       socket.disconnect();
     };
-  }, []);
+  }, [roomId]);
 
   return (
     <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center gap-4">

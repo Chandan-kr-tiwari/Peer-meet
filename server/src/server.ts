@@ -1,14 +1,16 @@
+
 import express from "express";
 import cors from "cors";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import PORT from "./config/server-config.js";
-
 const app = express();
 
-app.use(cors({
-  origin: "*",
-}));
+app.use(
+  cors({
+    origin: "*",
+  }),
+);
 
 const httpServer = createServer(app);
 
@@ -20,6 +22,17 @@ const io = new Server(httpServer, {
 
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
+
+  socket.on("join-room", (roomId: string) => {
+    socket.join(roomId);
+
+    console.log(
+      `Socket ${socket.id} joined room ${roomId}`,
+    );
+    socket.to(roomId).emit("user-joined", {
+    socketId: socket.id,
+  });
+  });
 
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
